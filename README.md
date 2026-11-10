@@ -45,7 +45,9 @@ The image carries Python and the `recipe-scrapers` library, which CookTrace's En
 Subcontainers:
 
 - `cooktrace` — the CookTrace server (web app, API and scheduler). Attach with `start-cli package attach cooktrace -n cooktrace`.
-- `set-admin-password` — a short-lived container the **Set Admin Password** action starts from the same image; it exists only while the action runs.
+- `set-admin-password` and `set-regional-defaults` — short-lived containers the **Set Admin Password** and **Set Regional Defaults** actions start from the same image; each exists only while its action runs.
+
+Once regional defaults are set, a `regional-defaults` oneshot runs in the `cooktrace` subcontainer before the server on every start.
 
 ## Volume and Data Layout
 
@@ -66,14 +68,15 @@ The package writes no CookTrace configuration file: upstream configures itself f
 
 `store.json` on the `startos` volume holds the package's state:
 
-| Key             | Seeded                                  | Rewritten by                      |
-| --------------- | --------------------------------------- | --------------------------------- |
-| `jwtSecret`     | random, at install                      | never                             |
-| `tokenEncKey`   | random, at install                      | never                             |
-| `adminPassword` | empty until **Set Admin Password** runs | **Set Admin Password**, every run |
-| `primaryUrl`    | empty                                   | **Set Primary URL**               |
-| `smtp`          | `disabled`                              | **Configure SMTP**                |
-| `apiAccess`     | `off` (`off`, `read`, `write`, `full`)  | **Configure API Access**          |
+| Key                | Seeded                                  | Rewritten by                      |
+| ------------------ | --------------------------------------- | --------------------------------- |
+| `jwtSecret`        | random, at install                      | never                             |
+| `tokenEncKey`      | random, at install                      | never                             |
+| `adminPassword`    | empty until **Set Admin Password** runs | **Set Admin Password**, every run |
+| `primaryUrl`       | empty                                   | **Set Primary URL**               |
+| `smtp`             | `disabled`                              | **Configure SMTP**                |
+| `apiAccess`        | `off` (`off`, `read`, `write`, `full`)  | **Configure API Access**          |
+| `regionalDefaults` | empty                                   | **Set Regional Defaults**         |
 
 `adminPassword` is the last password the action set. If the password is changed inside CookTrace, the stored copy is stale; the action is the way to get a known one back.
 
@@ -126,7 +129,7 @@ Upstream opens to a setup screen in which whoever loads the page first creates t
 
 ## Actions
 
-Four actions, all user-facing; none is hidden.
+Five actions, all user-facing; none is hidden.
 
 ### Set Admin Password
 
@@ -172,6 +175,17 @@ Every request still needs an API token from **Settings > API Tokens** holding th
 - **Cost**: CookTrace restarts.
 - **Repeat safety**: each run sets the level outright.
 
+### Set Regional Defaults
+
+Sets the language, measurement system, energy unit, date and time formats, and Open Food Facts search country and language that accounts start with. CookTrace itself has no instance-wide default: without this every account starts in English, imperial, kcal, MM/DD/YYYY dates, 12-hour time and worldwide food search, whatever the browser's language, and accounts the package creates never see the setup wizard that picks metric or kJ from the browser. The choice is stored as `regionalDefaults`; turning **Apply to accounts without their own settings** off sets it back to empty.
+
+- **What it changes**: CookTrace's `user_settings` rows `language`, `measurementSystem`, `energyUnit`, `dateFormat`, `timeFormat`, `offSearchCountry` and `offSearchLanguage`, for every account that has no value for a key or has cleared it. A value an account has saved is never overwritten. The time zone (`timezone`) is left alone: CookTrace fills it from the browser.
+- **When it applies**: at once to existing accounts, then on every start through the `regional-defaults` oneshot, which covers accounts created since. Running the action again covers them straight away. If the oneshot fails it logs `Regional defaults not applied: …` and CookTrace starts anyway; the action reports the same failure as an error.
+- **Cost**: a few seconds, without restarting CookTrace. While defaults are set, each start runs the oneshot first, which takes about a second.
+- **Turning it off** stops all filling, including the oneshot, and leaves settings already filled in as they are.
+- **Repeat safety**: each run replaces the stored choice and moves every setting still holding the previous default to the new one; a value someone changed stays. An account that chose exactly the previous default moves too, since the two can't be told apart.
+- **Output**: how many settings it filled in.
+
 ## Tasks
 
 One task, raised at install.
@@ -207,7 +221,8 @@ What works differently from a CookTrace installed with upstream's Docker Compose
 2. The login-page recovery ("Disable user management") is unavailable because `RECOVERY_TOKEN` is unset. **Set Admin Password** is the recovery path.
 3. **Settings > Email (SMTP)** is read-only; email is set with **Configure SMTP**.
 4. Trace AI cannot be pointed at a model through the server (`AI_PROVIDER`, `AI_BASE_URL`). Each user configures it in **Settings > AI Assistant**, where the browser calls the provider, so a local model has to be reachable from the browser.
-5. Addresses CookTrace dials itself must not use `.local` names; see [Network Access and Interfaces](#network-access-and-interfaces).
+5. CookTrace has no instance-wide regional defaults. **Set Regional Defaults** fills them into each account that hasn't chosen its own, and accounts created afterwards get them at the next start or the next run of the action.
+6. Addresses CookTrace dials itself must not use `.local` names; see [Network Access and Interfaces](#network-access-and-interfaces).
 
 ---
 
@@ -219,7 +234,7 @@ The package's operable surface in one block.
 package_id: cooktrace
 image: ghcr.io/traceapps/cooktrace
 architectures: [x86_64, aarch64]
-subcontainers: [cooktrace, set-admin-password]
+subcontainers: [cooktrace, set-admin-password, set-regional-defaults]
 volumes:
   main: [/data/db, /data/uploads, /data/backups]
   startos: none
@@ -256,6 +271,7 @@ actions:
   - set-primary-url
   - manage-smtp
   - set-api-access
+  - set-regional-defaults
 tasks:
   - { action: set-admin-password, severity: critical }
 health_checks:

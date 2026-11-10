@@ -38,3 +38,5 @@ gh release list -R TraceApps/cooktrace --exclude-pre-releases --limit 1
    gh api repos/TraceApps/cooktrace/compare/v<old>...vX.Y.Z --jq '.files[].filename' \
      | grep -E '^server/(db\.js|lib/claim-anonymous-data\.js|package\.json)$'
    ```
+
+6. Check that the setting keys and values **Set Regional Defaults** writes (`regionalSettings` and the option lists in `startos/utils.ts`) still match upstream's `src/stores/settings.js`, `src/i18n/index.js` (`AVAILABLE_LOCALES`), `src/components/settings/SettingsRegional.svelte` and `src/components/settings/SettingsFoodSources.svelte`. A renamed key or value is written without an error and ignored by CookTrace.
