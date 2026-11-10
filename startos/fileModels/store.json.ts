@@ -8,6 +8,18 @@ const shape = z.looseObject({
   primaryUrl: z.string().catch(''),
   smtp: smtpShape,
   apiAccess: z.enum(['off', 'read', 'write', 'full']).catch('off'),
+  regionalDefaults: z
+    .looseObject({
+      language: z.string(),
+      units: z.enum(['metric', 'imperial']),
+      energy: z.enum(['kcal', 'kJ']),
+      dateFormat: z.enum(['ISO', 'EU', 'US', 'natural']),
+      timeFormat: z.enum(['24h', '12h']),
+      foodCountry: z.string(),
+      foodLanguage: z.string(),
+    })
+    .nullable()
+    .catch(null),
 })
 
 export const storeJson = FileHelper.json(

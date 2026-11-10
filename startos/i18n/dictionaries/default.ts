@@ -45,6 +45,34 @@ const dict = {
 
   // main.ts
   'Generated secrets are missing from store.json': 28,
+
+  // actions/setRegionalDefaults.ts
+  'Apply to accounts without their own settings': 29,
+  "When on, CookTrace fills these in now for every account that hasn't set them itself, and for new accounts each time it starts. Turn off to stop; settings already filled in stay as they are.": 30,
+  Language: 31,
+  'The language CookTrace opens in.': 32,
+  'Measurement system': 33,
+  'Which units CookTrace lists first when you pick an ingredient unit, and which units Trace AI uses.': 34,
+  'Metric (g, ml, °C)': 35,
+  'Imperial (oz, cup, lb, °F)': 36,
+  Energy: 37,
+  'Calories (kcal)': 38,
+  'Kilojoules (kJ)': 39,
+  'Date format': 40,
+  'Time format': 41,
+  '24-hour': 42,
+  '12-hour': 43,
+  'Food search country': 44,
+  'Open Food Facts searches show only products sold in this country.': 45,
+  Anywhere: 46,
+  'Food search language': 47,
+  'Open Food Facts searches show products in this language, with their names in it where available.': 48,
+  'Set Regional Defaults': 49,
+  'Choose the language, measurement system, date and time formats and food search region that CookTrace accounts start with. It fills them in for every account that has not chosen them, now and each time CookTrace starts, and never changes a choice someone has made.': 50,
+  'Regional Defaults Turned Off': 51,
+  'CookTrace no longer fills in regional defaults. Settings already filled in stay as they are.': 52,
+  'Regional Defaults Saved': 53,
+  'CookTrace filled in ${count} settings for accounts that had not chosen them. Accounts created later get them the next time CookTrace starts.': 54,
 } as const
 
 /**
