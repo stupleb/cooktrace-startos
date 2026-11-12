@@ -1,18 +1,18 @@
 import { IMPOSSIBLE, VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
-  version: '1.4.1:1',
+  version: '1.4.1:2',
   releaseNotes: {
     en_US:
-      'Adds a Set Regional Defaults action for the language, measurement system, date and time formats and food search region that CookTrace accounts start with. Requires StartOS 0.4.2 or later.',
+      'Set Regional Defaults applies to new accounts as soon as they are created and leaves existing accounts unchanged.',
     es_ES:
-      'Añade la acción Establecer valores regionales predeterminados, para el idioma, el sistema de medida, los formatos de fecha y hora y la región de búsqueda de alimentos con los que empiezan las cuentas de CookTrace. Requiere StartOS 0.4.2 o posterior.',
+      'Establecer valores regionales predeterminados se aplica a las cuentas nuevas en cuanto se crean y no cambia las cuentas existentes.',
     de_DE:
-      'Neue Aktion Regionale Standardwerte festlegen für Sprache, Maßsystem, Datums- und Zeitformat und die Region der Lebensmittelsuche, mit denen CookTrace-Konten beginnen. Erfordert StartOS 0.4.2 oder neuer.',
+      'Regionale Standardwerte festlegen gilt für neue Konten, sobald sie angelegt werden, und lässt bestehende Konten unverändert.',
     pl_PL:
-      'Dodaje akcję Ustaw domyślne ustawienia regionalne dla języka, systemu miar, formatów daty i czasu oraz regionu wyszukiwania produktów, od których zaczynają konta CookTrace. Wymaga StartOS 0.4.2 lub nowszego.',
+      'Ustaw domyślne ustawienia regionalne działa na nowe konta od chwili ich utworzenia i nie zmienia istniejących kont.',
     fr_FR:
-      "Ajoute l'action Définir les paramètres régionaux par défaut, pour la langue, le système de mesure, les formats de date et d'heure et la région de recherche des aliments avec lesquels les comptes CookTrace commencent. Nécessite StartOS 0.4.2 ou une version ultérieure.",
+      "Définir les paramètres régionaux par défaut s'applique aux nouveaux comptes dès leur création et ne modifie pas les comptes existants.",
   },
   migrations: {
     up: async ({ effects }) => {},

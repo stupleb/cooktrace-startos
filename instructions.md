@@ -21,7 +21,7 @@
 1. Run **Set Admin Password** when StartOS asks for it. Copy the username, `admin`, and the password it shows.
 2. Start CookTrace and open the **Web UI**.
 3. Sign in as `admin`.
-4. Run **Set Regional Defaults** to choose the language, measurement system, date and time formats and food search country that your accounts start with.
+4. Run **Set Regional Defaults** to choose the language, measurement system, date and time formats and food search country that new accounts start with. Set your own in **Settings > Regional & Units**.
 5. To give someone else their own recipes, open **Settings > Users** and invite them, or use **Add User Manually** to set their username and password yourself. Invitations need email, so run **Configure SMTP** first. To share recipes across a household, set up a kitchen in **Settings > Kitchens**.
 
 ## Using CookTrace
@@ -34,7 +34,7 @@ Run **Set Admin Password** again whenever you need a new admin password, for ins
 
 ### Regional defaults
 
-**Set Regional Defaults** fills in the language, measurement system, date and time formats and food search country for every account that hasn't chosen its own. Each person can still change theirs in **Settings > Regional & Units** and **Settings > Food Sources**. Accounts you add later get the defaults the next time CookTrace starts, or straight away if you run the action again. To stop, run it with **Apply to accounts without their own settings** turned off; settings already filled in stay as they are.
+**Set Regional Defaults** chooses the language, measurement system, date and time formats and food search country that accounts start with. Every account created after you run it starts with them; accounts that already exist, yours included, keep their settings. Each person can change theirs in **Settings > Regional & Units** and **Settings > Food Sources**. To stop, run it with **Use for new accounts** turned off.
 
 ### Bringing your recipes over
 
