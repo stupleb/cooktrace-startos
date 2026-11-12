@@ -47,7 +47,7 @@ Subcontainers:
 - `cooktrace` — the CookTrace server (web app, API and scheduler). Attach with `start-cli package attach cooktrace -n cooktrace`.
 - `set-admin-password` and `set-regional-defaults` — short-lived containers the **Set Admin Password** and **Set Regional Defaults** actions start from the same image; each exists only while its action runs.
 
-Once regional defaults are set, a `regional-defaults` oneshot runs in the `cooktrace` subcontainer before the server on every start.
+While regional defaults are set, a `regional-defaults` oneshot re-creates their trigger in the `cooktrace` subcontainer before the server starts.
 
 ## Volume and Data Layout
 
@@ -177,14 +177,14 @@ Every request still needs an API token from **Settings > API Tokens** holding th
 
 ### Set Regional Defaults
 
-Sets the language, measurement system, energy unit, date and time formats, and Open Food Facts search country and language that accounts start with. CookTrace itself has no instance-wide default: without this every account starts in English, imperial, kcal, MM/DD/YYYY dates, 12-hour time and worldwide food search, whatever the browser's language, and accounts the package creates never see the setup wizard that picks metric or kJ from the browser. The choice is stored as `regionalDefaults`; turning **Apply to accounts without their own settings** off sets it back to empty.
+Sets the language, measurement system, energy unit, date and time formats, and Open Food Facts search country and language that new accounts start with. CookTrace itself has no instance-wide default: without this every account starts in English, imperial, kcal, MM/DD/YYYY dates, 12-hour time and worldwide food search, whatever the browser's language, and accounts the package creates never see the setup wizard that picks metric or kJ from the browser. The choice is stored as `regionalDefaults`; turning **Use for new accounts** off sets it back to empty.
 
-- **What it changes**: CookTrace's `user_settings` rows `language`, `measurementSystem`, `energyUnit`, `dateFormat`, `timeFormat`, `offSearchCountry` and `offSearchLanguage`, for every account that has no value for a key or has cleared it. A value an account has saved is never overwritten. The time zone (`timezone`) is left alone: CookTrace fills it from the browser.
-- **When it applies**: at once to existing accounts, then on every start through the `regional-defaults` oneshot, which covers accounts created since. Running the action again covers them straight away. If the oneshot fails it logs `Regional defaults not applied: …` and CookTrace starts anyway; the action reports the same failure as an error.
+- **What it changes**: a SQLite trigger, `startos_regional_defaults`, on CookTrace's `users` table. When an account is created, it writes that account's `user_settings` rows `language`, `measurementSystem`, `energyUnit`, `dateFormat`, `timeFormat`, `offSearchCountry` and `offSearchLanguage`. Existing accounts are never changed, and each person can change their own settings afterwards. The time zone (`timezone`) is left alone: CookTrace fills it from the browser.
+- **When it applies**: to each account created after the action runs, at the moment it is created, so its first page is already in the chosen language. The trigger fires only for an account created in the last minute, so restoring a CookTrace full backup, which re-inserts its accounts with their original creation time, keeps their own settings. The `regional-defaults` oneshot removes the trigger before CookTrace's migrations run and re-creates it after, on every start: a migration can rebuild the `users` table, which drops it, and SQLite refuses some table rebuilds while it exists. If it fails it logs `Regional defaults not applied: …` and CookTrace starts anyway; the action reports the same failure as an error.
 - **Cost**: a few seconds, without restarting CookTrace. While defaults are set, each start runs the oneshot first, which takes about a second.
-- **Turning it off** stops all filling, including the oneshot, and leaves settings already filled in as they are.
-- **Repeat safety**: each run replaces the stored choice and moves every setting still holding the previous default to the new one; a value someone changed stays. An account that chose exactly the previous default moves too, since the two can't be told apart.
-- **Output**: how many settings it filled in.
+- **Turning it off** removes the trigger. Accounts created while it was on keep their settings.
+- **Repeat safety**: each run replaces the trigger and the stored choice; accounts created before keep what they started with.
+- **Output**: a confirmation.
 
 ## Tasks
 
@@ -221,7 +221,7 @@ What works differently from a CookTrace installed with upstream's Docker Compose
 2. The login-page recovery ("Disable user management") is unavailable because `RECOVERY_TOKEN` is unset. **Set Admin Password** is the recovery path.
 3. **Settings > Email (SMTP)** is read-only; email is set with **Configure SMTP**.
 4. Trace AI cannot be pointed at a model through the server (`AI_PROVIDER`, `AI_BASE_URL`). Each user configures it in **Settings > AI Assistant**, where the browser calls the provider, so a local model has to be reachable from the browser.
-5. CookTrace has no instance-wide regional defaults. **Set Regional Defaults** fills them into each account that hasn't chosen its own, and accounts created afterwards get them at the next start or the next run of the action.
+5. CookTrace has no instance-wide regional defaults. **Set Regional Defaults** gives them to accounts created after it runs; accounts that already exist, the `admin` account included, keep their own settings.
 6. Addresses CookTrace dials itself must not use `.local` names; see [Network Access and Interfaces](#network-access-and-interfaces).
 
 ---
